@@ -1,10 +1,12 @@
+# This file interpret the Data file
 import numpy as np
 import pandas as pd
+
 class TASK:
     """
     Include: task name, data dict
             data dict is like: {'A1':100, 'A2':50}
-    Note: You can simply call print to display them
+    Note: You can simply call print to display
     Author: Yanjie Ze
     """
     def __init__(self, task_name, data_dict=None):
@@ -14,6 +16,7 @@ class TASK:
             self.data_dict = data_dict
         else:
             self.data_dict = dict()
+        self.precedence = None
     
     def add_data(self, new_data_name, new_data_num):
         self.data_dict[new_data_name] = new_data_num
@@ -21,6 +24,9 @@ class TASK:
     def add_execution_time(self, execution_time):
             self.execution_time = execution_time
     
+    def add_precedence(self, pre_task):
+        self.precedence = pre_task
+
     def __str__(self):
         names = []
         for name in self.data_dict.keys():
@@ -31,6 +37,7 @@ class TASK:
 class JOB:
     """
     Job, include: dict of task
+    Note: You can simply call print to display
     Author: Yanjie Ze
     """
     def __init__(self, job_name, task_dict=None):
@@ -51,11 +58,33 @@ class JOB:
         return "Job %s, with tasks: %s"%(self.job_name, names)
 
 
+class DataCenter:
+    """
+    Include: Num of slots, Data, bandwidth
+    Author: Yanjie Ze
+    """
+    def __init__(self, dc_name, slot_num):
+        self.dc_name = dc_name
+        self.slot_num = slot_num
+        self.data_list = []
+        self.link_dict = dict()
+    
+    def __str__(self):
+        links = []
+        for i in self.link_dict.keys():
+            links.append(i)
+        return "Data Center %s, slot num=%u, has data:%s, has link to:%s"%(self.dc_name, self.slot_num, self.data_list ,links)
+
+    def add_data(self, data_name):
+        self.data_list.append(data_name)
+    
+    def add_link(self, destination, bandwidth):
+        self.link_dict[destination] = bandwidth
 
 class DataLoader:
     """
     Load Toy Data. 
-    Note that this only works for Toy Data.
+    Note: this only works for Toy Data.
 
     Author: Yanjie Ze
     """
@@ -70,6 +99,7 @@ class DataLoader:
     def read_data_all(self):
         """
         read data from excel
+        (Demo)
         """
         self.data_bandwidth = pd.read_excel(self.file_path, sheet_name='Inter-Datacenter Links')
         self.data_joblist = pd.read_excel(self.file_path, sheet_name='Job List')
@@ -109,16 +139,76 @@ class DataLoader:
                     task_dict[task_name].add_data(new_data_name=data_name,\
                                                     new_data_num=data_num)
 
+        """
+        # Add precedence of each task!!!
+        for i in range(len(data_joblist['Precedence Constraint'])):
+            relation = data_joblist['Precedence Constraint'][i]
+            if pd.isnull(relation) is True:
+                pass
+            print(relation)
+        """
+
         # get task into job dict                
         for task_name in task_dict.keys():
             job_name_belong_to = task_name[1]
             job_dict[job_name_belong_to].add_task(task_name, task_dict[task_name])
 
-        print("Create_job_dict() finish, return job dict and task dict.")
         return job_dict, task_dict
 
+    def create_datacenter(self):
+        """
+        return data center dict
+        """
+
+        data_datacenter = pd.read_excel(self.file_path, sheet_name='Data Center Details')
+
+        # create data center dict, add slot num
+        data_center_dict = dict()
+        for i in range(len(data_datacenter['DC'])):
+            dc = data_datacenter['DC'][i]
+            slot_num = data_datacenter['Num of Slots'][i]
+            if pd.isnull(dc):
+                continue
+            data_center_dict[dc] = DataCenter(dc_name=dc, slot_num=slot_num)
+            #print(data_center_dict[dc])
+
+        # add data of each data center
+        for i in range(len(data_datacenter['Data Partition'])):
+            data_name = data_datacenter['Data Partition'][i]
+            location = data_datacenter['Location'][i]
+            data_center_dict[location].add_data(data_name)
+
+        # read file
+        data_bandwidth = pd.read_excel(self.file_path, sheet_name='Inter-Datacenter Links')
+        
+        # add bandwidth
+        center_num = 0
+        for dc in data_bandwidth['Bandwidth/MBps']:
+            if pd.isnull(dc):
+                continue
+            center_num += 1
+
+        for i in range(len(data_bandwidth['Bandwidth/MBps'])):
+            dc = data_bandwidth['Bandwidth/MBps'][i]
+            if pd.isnull(dc):
+                continue
+            for j in range(center_num):
+                bandwidth = data_bandwidth.loc[i][j+1]
+                dest = data_bandwidth.loc[j][0]
+                if bandwidth != '-':
+                    data_center_dict[dc].add_link(destination=dest, bandwidth=bandwidth)
+        
+        
+        return data_center_dict
+
+    def create_DAG(self, task_dict):
+        pass
 
 if __name__=='__main__':
     data_loader = DataLoader()
+    # # demo 1
     job_dict, task_dict = data_loader.create_job_dict()
+
+    # demo 2
+    data_center_dict = data_loader.create_datacenter()
 
