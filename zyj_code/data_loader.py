@@ -46,7 +46,8 @@ class JOB:
             self.task_dict = task_dict
         else:
             self.task_dict = dict()
-    
+        self.DAG = None
+
     def add_task(self, new_task_name, new_task):
         self.task_dict[new_task_name] = new_task
 
@@ -55,8 +56,10 @@ class JOB:
         names = []
         for name in task_name:
             names.append(name)
-        return "Job %s, with tasks: %s"%(self.job_name, names)
+        return "Job %s, with tasks: %s, with DAG: %s"%(self.job_name, names, self.DAG)
 
+    def add_DAG(self, DAG):
+        self.DAG = DAG
 
 class DataCenter:
     """
@@ -139,19 +142,13 @@ class DataLoader:
                     task_dict[task_name].add_data(new_data_name=data_name,\
                                                     new_data_num=data_num)
 
-        """
-        # Add precedence of each task!!!
-        for i in range(len(data_joblist['Precedence Constraint'])):
-            relation = data_joblist['Precedence Constraint'][i]
-            if pd.isnull(relation) is True:
-                pass
-            print(relation)
-        """
-
         # get task into job dict                
         for task_name in task_dict.keys():
             job_name_belong_to = task_name[1]
             job_dict[job_name_belong_to].add_task(task_name, task_dict[task_name])
+
+        # add DAG relation
+        job_dict = self.create_DAG(job_dict)
 
         return job_dict, task_dict
 
@@ -170,7 +167,7 @@ class DataLoader:
             if pd.isnull(dc):
                 continue
             data_center_dict[dc] = DataCenter(dc_name=dc, slot_num=slot_num)
-            #print(data_center_dict[dc])
+    
 
         # add data of each data center
         for i in range(len(data_datacenter['Data Partition'])):
@@ -201,14 +198,32 @@ class DataLoader:
         
         return data_center_dict
 
-    def create_DAG(self, task_dict):
-        pass
+
+    def create_DAG(self, job_dict):
+        """
+        Add DAG relation into job dict
+        """
+
+        data_joblist = pd.read_excel(self.file_path, sheet_name='Job List')
+        for i in range(len(data_joblist['Precedence Constraint'])):
+            relation = data_joblist['Precedence Constraint'][i]
+            correspond_job = data_joblist['Job / Required Data amount (MB)'][i]
+            if pd.isnull(relation) is True:
+                continue
+            job_dict[correspond_job].add_DAG(relation)
+        
+        return job_dict
 
 if __name__=='__main__':
     data_loader = DataLoader()
     # # demo 1
-    job_dict, task_dict = data_loader.create_job_dict()
+    # job_dict, task_dict = data_loader.create_job_dict()
 
-    # demo 2
-    data_center_dict = data_loader.create_datacenter()
+    # # demo 2
+    # data_center_dict = data_loader.create_datacenter()
+
+    # demo 3
+    job_dict, task_dict = data_loader.create_job_dict()
+    print(job_dict['B'])
+
 
