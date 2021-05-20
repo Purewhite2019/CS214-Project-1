@@ -1,8 +1,8 @@
 # Coding说明
 Yanjie Ze, May 2021
 # 命名规范
-1. class名字统一大写，如DataLoader。
-2. 变量名用单词加下划线，如data_loader。
+1. class名字统一大写开头，如DataLoader。
+2. 变量名用小写单词加下划线，如data_loader。
 3. 文件名尽量用单词加下划线，如data_loader.py。
 
 # 共同编写代码规范

@@ -1,4 +1,8 @@
-# This file interpret the Data file
+"""
+File Function: Interpret Toy Data
+Author: Yanjie Ze
+Date: May 20, 2021
+"""
 import numpy as np
 import pandas as pd
 
@@ -7,7 +11,6 @@ class TASK:
     Include: task name, data dict
             data dict is like: {'A1':100, 'A2':50}
     Note: You can simply call print to display
-    Author: Yanjie Ze
     """
     def __init__(self, task_name, data_dict=None):
         self.task_name = task_name
@@ -38,7 +41,7 @@ class JOB:
     """
     Job, include: dict of task
     Note: You can simply call print to display
-    Author: Yanjie Ze
+     
     """
     def __init__(self, job_name, task_dict=None):
         self.job_name = job_name
@@ -64,7 +67,7 @@ class JOB:
 class DataCenter:
     """
     Include: Num of slots, Data, bandwidth
-    Author: Yanjie Ze
+     
     """
     def __init__(self, dc_name, slot_num):
         self.dc_name = dc_name
@@ -88,8 +91,7 @@ class DataLoader:
     """
     Load Toy Data. 
     Note: this only works for Toy Data.
-
-    Author: Yanjie Ze
+     
     """
     def __init__(self, file_path="../ToyData.xlsx"):
         self.file_path = file_path
