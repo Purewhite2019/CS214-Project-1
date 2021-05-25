@@ -76,8 +76,7 @@ class DAGScheduler:
                 else:
                     task_sets[task_depth] = []
                     depth_init[task_depth] = 1
-                    task_sets[task_depth].append(cur_task)
-        #print(task_sets[0][2])  
+                    task_sets[task_depth].append(cur_task) 
              
         return task_sets
     

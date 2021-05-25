@@ -8,7 +8,15 @@ class TaskScheduler:
         data_loader = DataLoader(file_path)
         self.task_set_dict = dag_scheduler.task_sets
         self.data_center_dict = data_loader.create_datacenter()
-    
+        self.data_center_dict_modified = self.data_center_dict
+
+        max_depth = 0
+        for key in self.task_set_dict.keys():
+            if key > max_depth:
+                max_depth = key
+        self.max_depth = max_depth
+        
+
     def task_assignment(self, threshold):
         pass
 
@@ -19,10 +27,22 @@ class TaskScheduler:
         """
         Temporaliy use different depth set
         """
+        if depth > self.max_depth:
+            raise Exception("Error: Depth Beyond.")
         return self.task_set_dict[depth]
 
     def get_datacenter(self):
-        return self.data_center_dict
+        return self.data_center_dict_modified
+    
+    def update_datacenter(self, placement_matrix, task_set_list):
+        """
+        update data center, after one iteration
+        """
+        for task in task_set_list:
+            print(task)
+        
+
+
 
     
     

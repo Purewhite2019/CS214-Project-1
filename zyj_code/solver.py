@@ -10,6 +10,7 @@ class Solver:
 
         self.finishtime_matrix = None
         self.placement_matrix = None
+        self.data_center_dict = None
         
 
     def formulate_LP(self, task_set_list, data_center_dict):
@@ -35,7 +36,7 @@ class Solver:
                 job_list.append(job)
                 job_num_all += 1
 
-        # get max num of  task of one job
+        # get max num of task of one job
         task_num_max = 0
         job_dict_count = dict()
         for job in job_list:
@@ -110,7 +111,8 @@ class Solver:
                         tgt_dc_id = int(dc[2]) - 1
                         break
                 if tgt_dc_id == -1:
-                    raise "Error: can't find such data in any data center"
+                   
+                    raise Exception("Error: can't find data(%s) in any data center"%(data_point))
                 else:# update
                     constant_reqdata[cur_job_id][cur_task_id][tgt_dc_id] = data_point_num
 
@@ -230,7 +232,7 @@ class Solver:
                                 idx_j = j
 
             fixed_job_id = idx_k
-            print("Hvae fixed job:", fixed_job_id)
+            print("Have fixed job:", fixed_job_id)
             job_num_all -= 1 # minus 1
 
             # update the final result: two matrix
@@ -247,8 +249,9 @@ class Solver:
                     variable_x[fixed_job_id][i][j] = self.placement_matrix[fixed_job_id][i][j]
                     # new_constraint = (variable_x[fixed_job_id][i][j] == self.placement_matrix[fixed_job_id][i][j])
                     # problem += new_constraint
-            
-            
+
+        print("Max Min Fairness Baseline Status:", lp.LpStatus[problem.status])    
+                  
         
 
     def get_placement(self, task_set_list, data_center_dict):
@@ -257,7 +260,37 @@ class Solver:
         """
         self.formulate_LP(task_set_list, data_center_dict)
         return self.placement_matrix, self.finishtime_matrix
-        
+
+
+    def update_datacenter(self, placement_matrix, task_set_list_new, task_set_list_old, data_center_dict):
+        """
+        After one iteration, data center will remain some task in slot.
+        Thus, we need to update the data center dict
+        """
+        # get which task needs to be remained
+        require_tasks = []
+        for task in task_set_list_new:
+            require_datas = list(task.data_dict.keys())
+            for data in require_datas:
+                if 't' in data:
+                    require_tasks.append(data)
+                   
+
+        # get the placement of these tasks
+        require_tasks = list(set(require_tasks)) # delete the repeated !!!
+        for task in require_tasks:
+            job_id = ord(task[1]) - ord('A')
+            task_id = int(task[2]) - 1
+            slot_id = None
+            for j in range(placement_matrix.shape[2]):
+                if placement_matrix[job_id][task_id][j]==1:
+                    slot_id = j
+                    break
+            DC = 'DC' + str(slot_id+1)
+            data_center_dict[DC].data_list.append(task) 
+
+        return data_center_dict
+
                    
 
    
@@ -265,10 +298,15 @@ class Solver:
 
 if __name__=='__main__':
     task_scheduler = TaskScheduler()
-    task_set = task_scheduler.get_taskset()
+    task_set = task_scheduler.get_taskset(0)
+    task_set_new = task_scheduler.get_taskset(1)
     data_center = task_scheduler.get_datacenter()
 
     solver = Solver()
     placement, finish_time = solver.get_placement(task_set, data_center)
-    print(placement)
+    new_dc_dict = solver.update_datacenter(placement, task_set_new, task_set, data_center)
+
+    placement, finish_time = solver.get_placement(task_set_new, new_dc_dict)
+    
+    task_set_new = task_scheduler.get_taskset()
        
