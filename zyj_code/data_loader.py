@@ -20,12 +20,13 @@ class TASK:
         else:
             self.data_dict = dict()
         self.precedence = None
+        self.depth = None
     
     def add_data(self, new_data_name, new_data_num):
         self.data_dict[new_data_name] = new_data_num
 
     def add_execution_time(self, execution_time):
-            self.execution_time = execution_time
+        self.execution_time = execution_time
     
     def add_precedence(self, pre_task):
         self.precedence = pre_task
@@ -50,6 +51,9 @@ class JOB:
         else:
             self.task_dict = dict()
         self.DAG = None
+        self.graph_matrix = None
+        self.task_num = None
+        self.depth_vector = None
 
     def add_task(self, new_task_name, new_task):
         self.task_dict[new_task_name] = new_task
@@ -63,6 +67,13 @@ class JOB:
 
     def add_DAG(self, DAG):
         self.DAG = DAG
+    
+    def update_tasknum(self):
+        self.task_num = len(self.task_dict.keys())
+    
+    def create_graphmatrix(self):
+        self.graph_matrix = np.zeros((self.task_num, self.task_num),dtype=np.int)
+        self.depth_vector = np.ones(self.task_num, dtype=np.int)*(-1)
 
 class DataCenter:
     """
