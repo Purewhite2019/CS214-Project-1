@@ -125,6 +125,17 @@ class Solver:
                         if max_c < tmp_c:
                             max_c = tmp_c
                     constant_completime[k][i][j] = max_c
+
+        # constant: M^(c+e)
+        constant_exponetial = np.zeros((max_job_id, max_id, data_center_num))
+        for k in range(max_job_id):
+            for i in range(max_id):
+                for j in range(data_center_num):
+                    if constant_extime[k][i][j] == 0:
+                        continue
+                    constant_exponetial[k][i][j] = np.exp(constant_extime[k][i][j] + constant_completime[k][i][j])
+
+
         """
         for now, we have several constants
         then we can solve LP problem
@@ -135,13 +146,52 @@ class Solver:
 
         # add variable
         variable_name = ['x_kij', 'lambda_kij0', 'lambda_kij1']
-        variable_x = [lp.LpVariable('x%d%d%d'%(k,i,j), lowBound=0, upBound=1, cat='Binary') for k in range(max_job_id) for i in range(max_id) for j in range(data_center_num)]
-        variable_lambda0 = [lp.LpVariable('lambda0%d%d%d'%(k,i,j), lowBound=0, upBound=1, cat='Binary') for k in range(max_job_id) for i in range(max_id) for j in range(data_center_num)]
-        variable_lambda1 = [lp.LpVariable('lambda1%d%d%d'%(k,i,j), lowBound=0, upBound=1, cat='Binary') for k in range(max_job_id) for i in range(max_id) for j in range(data_center_num)]
+        ## one way
+        variable_x = [[[lp.LpVariable('x%d%d%d'%(k,i,j), cat='Binary') for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
+        variable_lambda0 = [[[lp.LpVariable('lambda0%d%d%d'%(k,i,j), cat='Binary')for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
+        variable_lambda1 = [[[lp.LpVariable('lambda1%d%d%d'%(k,i,j), cat='Binary') for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
+        print(len(variable_lambda1))
+        ## another way
+        # job_dim1 = np.zeros(max_job_id)
+        # task_dim1 = np.zeros(max_id)
+        # dc_dim1 = np.zeros(data_center_num)
+        # job_dim2 = np.zeros(max_job_id)
+        # task_dim2 = np.zeros(max_id)
+        # dc_dim2 = np.zeros(data_center_num)
+        # job_dim3 = np.zeros(max_job_id)
+        # task_dim3 = np.zeros(max_id)
+        # dc_dim3 = np.zeros(data_center_num)
+        # variable_x = lp.LpVariable.dicts('variable_x', (job_dim1, task_dim1, dc_dim1), cat='Binary')
+        # variable_lambda0 = lp.LpVariable.dicts('variable_lambda0', (job_dim2, task_dim2, dc_dim2), cat='Binary')
+        # variable_lambda1 = lp.LpVariable.dicts('variable_lambda1', (job_dim3, task_dim3, dc_dim3), cat='Binary')
 
         # target equation
-        #problem += lp.lpSum()
-        pass
+        print(variable_lambda0[0][0][0])
+        objective = lp.lpSum([variable_lambda0[k][i][j] + variable_lambda1[k][i][j] * constant_exponetial[k][i][j] for k in range(max_job_id) for i in range(max_id) for j in range(data_center_num)])
+        problem += objective
+
+        # add constraint
+
+        for k in range(max_job_id):
+            for i in range(max_id):
+                for j in range(data_center_num):
+                    constraints1 = variable_x[k][i][j] == variable_lambda1[k][i][j] 
+                    constraints2 = (variable_lambda0[k][i][j] + variable_lambda1[k][i][j])==1
+                     
+                    problem += constraints1
+                    problem += constraints2
+
+        for j in range(data_center_num):
+            constraints3 = lp.lpSum([variable_x[k][i][j] for k in range(max_job_id) for i in range(max_id)])<=constant_slot[j]   
+            problem += constraints3
+
+        for k in range(max_job_id):
+            for i in range(max_id):
+                constraints4 = lp.lpSum([variable_x[k][i][j] for j in range(data_center_num)])==1
+                problem += constraints4
+
+        problem.solve()
+        print("Status:", lp.LpStatus[problem.status])
 
 
 
