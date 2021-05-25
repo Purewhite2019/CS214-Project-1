@@ -6,8 +6,11 @@ import numpy as np
 
 class Solver:
     def __init__(self, file_path="../ToyData.xlsx"):
-       self.task_scheduler = TaskScheduler(file_path)
-       
+        self.task_scheduler = TaskScheduler(file_path)
+
+        self.finishtime_matrix = None
+        self.placement_matrix = None
+        
 
     def formulate_LP(self, task_set_list, data_center_dict):
         """
@@ -135,6 +138,11 @@ class Solver:
                         continue
                     constant_exponetial[k][i][j] = np.exp(constant_extime[k][i][j] + constant_completime[k][i][j])
 
+        """
+        init the result matrix: finish time matrix
+        """
+        self.finishtime_matrix = np.zeros((max_job_id, max_id, data_center_num))
+        self.placement_matrix = np.zeros((max_job_id, max_id, data_center_num))
 
         """
         for now, we have several constants
@@ -150,7 +158,7 @@ class Solver:
         variable_x = [[[lp.LpVariable('x%d%d%d'%(k,i,j), cat='Binary') for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
         variable_lambda0 = [[[lp.LpVariable('lambda0%d%d%d'%(k,i,j), cat='Binary')for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
         variable_lambda1 = [[[lp.LpVariable('lambda1%d%d%d'%(k,i,j), cat='Binary') for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
-        print(len(variable_lambda1))
+        
         ## another way
         # job_dim1 = np.zeros(max_job_id)
         # task_dim1 = np.zeros(max_id)
@@ -166,7 +174,7 @@ class Solver:
         # variable_lambda1 = lp.LpVariable.dicts('variable_lambda1', (job_dim3, task_dim3, dc_dim3), cat='Binary')
 
         # target equation
-        print(variable_lambda0[0][0][0])
+        
         objective = lp.lpSum([variable_lambda0[k][i][j] + variable_lambda1[k][i][j] * constant_exponetial[k][i][j] for k in range(max_job_id) for i in range(max_id) for j in range(data_center_num)])
         problem += objective
 
@@ -190,9 +198,69 @@ class Solver:
                 constraints4 = lp.lpSum([variable_x[k][i][j] for j in range(data_center_num)])==1
                 problem += constraints4
 
-        problem.solve()
-        print("Status:", lp.LpStatus[problem.status])
+        ## Enter the loop solution of LP
+        while(job_num_all!=0):
+            
+            if job_num_all != 1:
+                problem.solve(lp.PULP_CBC_CMD(msg =False))
+            else:
+                problem.solve(lp.PULP_CBC_CMD(msg =False))
+           
 
+            """
+            We have solved LP, then move and into next LP
+            """
+
+            # get the argmax value of x
+            pha_max = 0
+            idx_k = 0
+            idx_i = 0
+            idx_j = 0
+            for k in range(max_job_id):
+                for i in range(max_id):
+                    for j in range(data_center_num):
+                        if isinstance(variable_x[k][i][j], np.float64):
+                            continue
+                        if variable_x[k][i][j].varValue !=0:
+                            pha = variable_x[k][i][j].varValue * (constant_extime[k][i][j] + constant_completime[k][i][j])
+                            if pha > pha_max:
+                                pha_max = pha
+                                idx_k = k
+                                idx_i = i
+                                idx_j = j
+
+            fixed_job_id = idx_k
+            print("Hvae fixed job:", fixed_job_id)
+            job_num_all -= 1 # minus 1
+
+            # update the final result: two matrix
+            for i in range(max_id):
+                for j in range(data_center_num):
+                        self.finishtime_matrix[idx_k][i][j] = variable_x[fixed_job_id][i][j].varValue * pha_max
+                        self.placement_matrix[idx_k][i][j] = variable_x[fixed_job_id][i][j].varValue
+
+
+            # fix and add new constraint
+            
+            for i in range(max_id):
+                for j in range(data_center_num):
+                    variable_x[fixed_job_id][i][j] = self.placement_matrix[fixed_job_id][i][j]
+                    # new_constraint = (variable_x[fixed_job_id][i][j] == self.placement_matrix[fixed_job_id][i][j])
+                    # problem += new_constraint
+            
+            
+        
+
+    def get_placement(self, task_set_list, data_center_dict):
+        """
+        Return: Placement Matrix, Finish Time Matrix
+        """
+        self.formulate_LP(task_set_list, data_center_dict)
+        return self.placement_matrix, self.finishtime_matrix
+        
+                   
+
+   
 
 
 if __name__=='__main__':
@@ -201,5 +269,6 @@ if __name__=='__main__':
     data_center = task_scheduler.get_datacenter()
 
     solver = Solver()
-    solver.formulate_LP(task_set, data_center)
+    placement, finish_time = solver.get_placement(task_set, data_center)
+    print(placement)
        
