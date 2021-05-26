@@ -3,6 +3,9 @@ from task_scheduler import TaskScheduler
 from DAG_scheduler import DAGScheduler
 from data_loader import DataLoader
 import numpy as np
+import logging
+
+logging.basicConfig(filename='result.txt', filemode='w')
 
 def DepthBasedBaseline(file_path="../ToyData.xlsx"):
     """
@@ -76,13 +79,15 @@ def JobStepBasedBaseline(file_path="../ToyData.xlsx", threshold=5):
 
         placement, finish_time = solver.get_placement(task_set_new, new_data_center)
         time_cost = np.max(finish_time)
-        print("time cost:", time_cost)
+        # print("time cost:", time_cost)
         final_time += time_cost
         task_set = task_set_new
         final_placement.append(placement)
         cur_step += 1
-    
-    print("-----Job Step Based Baseline Finish. Final Time:", final_time, '-------')
+    with open('result.txt', 'w') as f:
+        f.write("-----Job Step Based Baseline Finish. Final Time:%f----\n"%final_time)
+    f.close()
+    print("-----Job Step Based Baseline Finish. Final Time:%f----\n"%final_time)
 
     ## show result
     final_placement_show_jobbased(final_placement, task_scheduler)
@@ -95,7 +100,9 @@ def final_placement_show_jobbased(final_placement, task_scheduler):
     Input: list of several placements in several step
     Output: show the placement
     """
+    f =  open('result.txt', 'a')
     for i in range(len(final_placement)):
+        f.write("Step%d:\n"%i)
         print("Step%d:"%i)
         placement = final_placement[i]
         task_set = task_scheduler.get_taskset_jobbased(i)
@@ -108,8 +115,11 @@ def final_placement_show_jobbased(final_placement, task_scheduler):
                 dc_id = np.where(placement[job_id][task_id]==1)[0] + 1
             except:
                 dc_id = np.where(placement[job_id][task_id]==1)[0][0] + 1
+            
+            f.write(str(task) + 'place in DC' + str(dc_id)+'\n')
+            
             print(task, 'place in DC', dc_id)
-        
+    f.close()
 
 
 def final_placement_show_depthbased(final_placement, task_scheduler):
@@ -130,7 +140,7 @@ def final_placement_show_depthbased(final_placement, task_scheduler):
                 dc_id = np.where(placement[job_id][task_id]==1)[0] + 1
             except:
                 dc_id = np.where(placement[job_id][task_id]==1)[0][0] + 1
-            print(task, 'place in DC', dc_id)
+            logging.info(task, 'place in DC', dc_id)
         
 
     

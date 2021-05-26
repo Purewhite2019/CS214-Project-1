@@ -3,6 +3,7 @@ from DAG_scheduler import DAGScheduler
 from data_loader import DataLoader
 import pulp as lp
 import numpy as np
+import math
 
 class Solver:
     def __init__(self, file_path="../ToyData.xlsx"):
@@ -17,13 +18,16 @@ class Solver:
         """
         TODO: need to change data center num into max id of data center?
         """
+        global MAX_VALUE
+        MAX_VALUE = 0
         data_center_num = 0
         for key in data_center_dict.keys():
             data_center_num += 1
         task_num_all = len(task_set_list)
 
         # M
-        bigM = data_center_num * task_num_all
+        bigM = (data_center_num * task_num_all)/ (task_num_all)
+        bigM = 5
 
 
         # divide task by job
@@ -48,7 +52,7 @@ class Solver:
         for job in job_list:
             if job_dict_count[job] > task_num_max:
                 task_num_max = job_dict_count[job]
-        # print(task_num_max)
+        
 
         # get max job id
         max_job = 'A'
@@ -115,7 +119,7 @@ class Solver:
                     raise Exception("Error: can't find data(%s) in any data center"%(data_point))
                 else:# update
                     constant_reqdata[cur_job_id][cur_task_id][tgt_dc_id] = data_point_num
-
+        
 
         # constant: complete time, c = max(d / b)
         constant_completime = np.zeros((max_job_id, max_id, data_center_num))
@@ -124,43 +128,55 @@ class Solver:
                 for j in range(data_center_num):
                     max_c = 0
                     for s in range(data_center_num):
-                        if constant_bandwidth[s][j]==0 or constant_reqdata[k][i][s]==0:
+                        if constant_bandwidth[s][j]==0 or constant_reqdata[k][i][s]==0:                      
                             continue
                         tmp_c = constant_reqdata[k][i][s]/constant_bandwidth[s][j]
                         if max_c < tmp_c:
                             max_c = tmp_c
                     constant_completime[k][i][j] = max_c
-
-        # constant: M^(c+e)
+        
+        
+         # constant: M^(c+e)
         constant_exponetial = np.zeros((max_job_id, max_id, data_center_num))
         for k in range(max_job_id):
             for i in range(max_id):
                 for j in range(data_center_num):
                     if constant_extime[k][i][j] == 0:
-                        continue
+                        constant_exponetial[k][i][j] = 0
+                        continue                   
                     constant_exponetial[k][i][j] = np.exp(constant_extime[k][i][j] + constant_completime[k][i][j])
-
+        
         """
         init the result matrix: finish time matrix
         """
         self.finishtime_matrix = np.zeros((max_job_id, max_id, data_center_num))
         self.placement_matrix = np.zeros((max_job_id, max_id, data_center_num))
-
+        
         """
         for now, we have several constants
         then we can solve LP problem
         """
-
         # define problem
         problem = lp.LpProblem(name='Max-Min-Fairness', sense=lp.LpMinimize)
 
-        # add variable
+        # variable name
         variable_name = ['x_kij', 'lambda_kij0', 'lambda_kij1']
         ## one way
         variable_x = [[[lp.LpVariable('x%d%d%d'%(k,i,j), cat='Binary') for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
         variable_lambda0 = [[[lp.LpVariable('lambda0%d%d%d'%(k,i,j), cat='Binary')for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
         variable_lambda1 = [[[lp.LpVariable('lambda1%d%d%d'%(k,i,j), cat='Binary') for j in range(data_center_num) ] for i in range(max_id) ]for k in range(max_job_id)]
         
+        ## delete the varibale which is not needed
+        for k in range(max_job_id):
+            for i in range(max_id):
+                for j in range(data_center_num):
+                    if constant_completime[k][i][j] <= 0.: 
+                        variable_lambda0[k][i][j] = 0
+                        variable_lambda1[k][i][j] = 1
+                        variable_x[k][i][j] = 0
+                        constant_completime[k][i][j] = MAX_VALUE # change to a very large value
+  
+
         ## another way
         # job_dim1 = np.zeros(max_job_id)
         # task_dim1 = np.zeros(max_id)
@@ -185,6 +201,8 @@ class Solver:
         for k in range(max_job_id):
             for i in range(max_id):
                 for j in range(data_center_num):
+                    if constant_completime[k][i][j]<= 0.:
+                        continue
                     constraints1 = variable_x[k][i][j] == variable_lambda1[k][i][j] 
                     constraints2 = (variable_lambda0[k][i][j] + variable_lambda1[k][i][j])==1
                      
@@ -192,14 +210,18 @@ class Solver:
                     problem += constraints2
 
         for j in range(data_center_num):
+            
             constraints3 = lp.lpSum([variable_x[k][i][j] for k in range(max_job_id) for i in range(max_id)])<=constant_slot[j]   
             problem += constraints3
 
         for k in range(max_job_id):
             for i in range(max_id):
+                if constant_completime[k][i].sum()<= 0.:
+                    continue
                 constraints4 = lp.lpSum([variable_x[k][i][j] for j in range(data_center_num)])==1
                 problem += constraints4
 
+        
         ## Enter the loop solution of LP
         while(job_num_all!=0):
             
@@ -221,7 +243,7 @@ class Solver:
             for k in range(max_job_id):
                 for i in range(max_id):
                     for j in range(data_center_num):
-                        if isinstance(variable_x[k][i][j], np.float64):
+                        if isinstance(variable_x[k][i][j], np.float64) or isinstance(variable_x[k][i][j], int) or isinstance(variable_x[k][i][j], float):
                             continue
                         if variable_x[k][i][j].varValue !=0:
                             pha = variable_x[k][i][j].varValue * (constant_extime[k][i][j] + constant_completime[k][i][j])
@@ -238,7 +260,14 @@ class Solver:
             # update the final result: two matrix
             for i in range(max_id):
                 for j in range(data_center_num):
-                        self.finishtime_matrix[idx_k][i][j] = variable_x[fixed_job_id][i][j].varValue * pha_max
+                    if isinstance(variable_x[fixed_job_id][i][j], int):
+                        self.finishtime_matrix[idx_k][i][j] = 0
+                    else:
+                        self.finishtime_matrix[idx_k][i][j] = variable_x[fixed_job_id][i][j].varValue * (constant_extime[k][i][j] + constant_completime[k][i][j])
+
+                    if isinstance(variable_x[fixed_job_id][i][j], int):
+                        self.placement_matrix[idx_k][i][j] = 0
+                    else:
                         self.placement_matrix[idx_k][i][j] = variable_x[fixed_job_id][i][j].varValue
 
 
@@ -278,14 +307,19 @@ class Solver:
 
         # get the placement of these tasks
         require_tasks = list(set(require_tasks)) # delete the repeated !!!
+        max_id = placement_matrix.shape[1]
+      
         for task in require_tasks:
             job_id = ord(task[1]) - ord('A')
             task_id = int(task[2]) - 1
+            
             slot_id = None
             for j in range(placement_matrix.shape[2]):
                 if placement_matrix[job_id][task_id][j]==1:
                     slot_id = j
                     break
+            if slot_id is None:
+                continue
             DC = 'DC' + str(slot_id+1)
             data_center_dict[DC].data_list.append(task) 
 
@@ -298,15 +332,16 @@ class Solver:
 
 if __name__=='__main__':
     task_scheduler = TaskScheduler()
-    task_set = task_scheduler.get_taskset(0)
-    task_set_new = task_scheduler.get_taskset(1)
+    task_set = task_scheduler.get_taskset_jobbased(0)
+    task_set_new = task_scheduler.get_taskset_jobbased(1)
     data_center = task_scheduler.get_datacenter()
 
     solver = Solver()
     placement, finish_time = solver.get_placement(task_set, data_center)
     new_dc_dict = solver.update_datacenter(placement, task_set_new, task_set, data_center)
-
+    print(placement)
     placement, finish_time = solver.get_placement(task_set_new, new_dc_dict)
     
     task_set_new = task_scheduler.get_taskset()
-       
+
+    
