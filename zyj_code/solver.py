@@ -232,7 +232,7 @@ class Solver:
                                 idx_j = j
 
             fixed_job_id = idx_k
-            print("Have fixed job:", fixed_job_id)
+            # print("Have fixed job:", fixed_job_id)
             job_num_all -= 1 # minus 1
 
             # update the final result: two matrix
@@ -250,7 +250,7 @@ class Solver:
                     # new_constraint = (variable_x[fixed_job_id][i][j] == self.placement_matrix[fixed_job_id][i][j])
                     # problem += new_constraint
 
-        print("Max Min Fairness Baseline Status:", lp.LpStatus[problem.status])    
+        print("Linear Programming Status:", lp.LpStatus[problem.status])    
                   
         
 
