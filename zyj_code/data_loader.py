@@ -107,11 +107,18 @@ class DataLoader:
     def __init__(self, file_path="../ToyData.xlsx"):
         self.file_path = file_path
         self.job_name_list = ['A', 'B', 'C','D','E','F']
+        
         self.data_name_list = ['A1','A2','B1','B2','tB1','C1','C2','tC1','tC2','D1','D2','D3','tD1','tD2', 'tD3', 'E1',\
-         'E2','E3','E4','tE1','tE2','tE3','tE5','F1','F2','F3','F4','F5','tF1','tF2','tF3','tF4','tF5','tF6','tF7','tF8']
+        'E2','E3','E4','tE1','tE2','tE3','tE5','F1','F2','F3','F4','F5','tF1','tF2','tF3','tF4','tF5','tF6','tF7','tF8']
         self.task_name_list = ['tA1','tA2','tB1','tB2','tC1','tC2','tC3','tD1','tD2','tD3',\
             'tD4','tD5','tE1','tE2','tE3','tE4','tE5','tE6','tF1','tF2','tF3','tF4','tF5','tF6','tF7','tF8','tF9']
-    
+        # elif file_path=='../GeneratedData.xlsx' or file_path=='GeneratedData.xlsx':
+        #     self.data_name_list = ['A1','A2','B1','B2','tB1','C1','C2','tC1','tC2','D1','D2','D3','tD1','tD2', 'tD3', 'E1',\
+        #     'E2','E3','E4','tE1','tE2','tE3','tE5','F1','F2','F3','F4','F5','tF1','tF2','tF3','tF4','tF5','tF6','tF7','tF8']
+        #     self.task_name_list = ['tA1','tA2','tB1','tB2','tC1','tC2','tC3','tD1','tD2','tD3',\
+        #         'tD4','tD5','tE1','tE2','tE3','tE4','tE5','tE6','tF1','tF2','tF3','tF4','tF5','tF6',\
+        #         'tF7','tF8','tF9', 'tG1','tG2', 'tG3','tG4','tG5','tG6', 'tG7','tG8', 'tG9']
+   
     def read_data_all(self):
         """
         read data from excel

@@ -185,12 +185,13 @@ def final_placement_show_depthbased(final_placement, task_scheduler):
 
 
 if __name__=='__main__':
+    filename = '../GeneratedData.xlsx'
     # print('----------------------------')
     #DepthBasedBaseline()
     # print('----------------------------')
     # final_placement = JobStepBasedBaseline(threshold=6)
     
-    JobStepBasedBaseline(threshold=6)
+    JobStepBasedBaseline(file_path=filename, threshold=6)
     
     
-    #DepthBasedBaseline()
+    DepthBasedBaseline(file_path=filename)

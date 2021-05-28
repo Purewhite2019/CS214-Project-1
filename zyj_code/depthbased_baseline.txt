@@ -1,37 +1,37 @@
-depth 0 cost time 5.000000
-depth 1 cost time 5.000000
-depth 2 cost time 6.000000
-depth 3 cost time 2.750000
-depth 4 cost time 3.666667
+depth 0 cost time 10.884406
+depth 1 cost time 13.549862
+depth 2 cost time 13.694090
+depth 3 cost time 7.599586
+depth 4 cost time 7.794481
 Depth0:
-Task tA1, Execution Time 1, need data: ['A1', 'A2']place in DC[4]
-Task tA2, Execution Time 1, need data: ['A1', 'A2']place in DC[1]
-Task tB1, Execution Time 2, need data: ['B1', 'B2']place in DC[1]
-Task tC1, Execution Time 4, need data: ['C1', 'C2']place in DC[2]
-Task tD1, Execution Time 2, need data: ['D1', 'D2', 'D3']place in DC[7]
-Task tD2, Execution Time 2, need data: ['D1', 'D2', 'D3']place in DC[9]
-Task tE1, Execution Time 4, need data: ['E1', 'E2', 'E3']place in DC[4]
-Task tF1, Execution Time 4, need data: ['F1']place in DC[9]
+Task tA1, Execution Time 8, need data: ['A1', 'A2']place in DC[4]
+Task tA2, Execution Time 7, need data: ['A1', 'A2']place in DC[4]
+Task tB1, Execution Time 9, need data: ['B1', 'B2']place in DC[1]
+Task tC1, Execution Time 7, need data: ['C1', 'C2']place in DC[6]
+Task tD1, Execution Time 6, need data: ['D1', 'D2', 'D3']place in DC[7]
+Task tD2, Execution Time 9, need data: ['D1', 'D2', 'D3']place in DC[9]
+Task tE1, Execution Time 6, need data: ['E1', 'E2', 'E3']place in DC[2]
+Task tF1, Execution Time 9, need data: ['F1']place in DC[9]
 Depth1:
-Task tB2, Execution Time 1, need data: ['B1', 'B2', 'tB1']place in DC[3]
-Task tC2, Execution Time 1, need data: ['C2', 'tC1']place in DC[2]
-Task tD3, Execution Time 1, need data: ['D2', 'tD1', 'tD2']place in DC[7]
-Task tD4, Execution Time 1, need data: ['D1', 'D3', 'tD2']place in DC[5]
-Task tE2, Execution Time 2, need data: ['E2', 'E4', 'tE1']place in DC[1]
-Task tE3, Execution Time 3, need data: ['E1', 'E3', 'tE1']place in DC[8]
-Task tF2, Execution Time 2, need data: ['F2', 'tF1']place in DC[1]
-Task tF3, Execution Time 1, need data: ['F3', 'tF1']place in DC[9]
-Task tF4, Execution Time 3, need data: ['F4', 'tF1']place in DC[9]
+Task tB2, Execution Time 6, need data: ['B1', 'B2', 'tB1']place in DC[3]
+Task tC2, Execution Time 9, need data: ['C2', 'tC1']place in DC[6]
+Task tD3, Execution Time 9, need data: ['D2', 'tD1', 'tD2']place in DC[7]
+Task tD4, Execution Time 7, need data: ['D1', 'D3', 'tD2']place in DC[5]
+Task tE2, Execution Time 8, need data: ['E2', 'E4', 'tE1']place in DC[6]
+Task tE3, Execution Time 8, need data: ['E1', 'E3', 'tE1']place in DC[8]
+Task tF2, Execution Time 7, need data: ['F2', 'tF1']place in DC[1]
+Task tF3, Execution Time 9, need data: ['F3', 'tF1']place in DC[9]
+Task tF4, Execution Time 8, need data: ['F4', 'tF1']place in DC[9]
 Depth2:
-Task tC3, Execution Time 2, need data: ['C1', 'tC1', 'tC2']place in DC[2]
-Task tD5, Execution Time 1, need data: ['D2', 'tD3']place in DC[7]
-Task tE4, Execution Time 2, need data: ['E2', 'tE2']place in DC[6]
-Task tE5, Execution Time 1, need data: ['E3', 'E4', 'tE3']place in DC[8]
-Task tF5, Execution Time 1, need data: ['F1', 'F2', 'F3', 'tF2', 'tF3']place in DC[9]
-Task tF6, Execution Time 1, need data: ['F1', 'F4', 'tF4']place in DC[9]
+Task tC3, Execution Time 9, need data: ['C1', 'tC1', 'tC2']place in DC[6]
+Task tD5, Execution Time 9, need data: ['D2', 'tD3']place in DC[7]
+Task tE4, Execution Time 9, need data: ['E2', 'tE2']place in DC[6]
+Task tE5, Execution Time 9, need data: ['E3', 'E4', 'tE3']place in DC[8]
+Task tF5, Execution Time 8, need data: ['F1', 'F2', 'F3', 'tF2', 'tF3']place in DC[9]
+Task tF6, Execution Time 7, need data: ['F1', 'F4', 'tF4']place in DC[9]
 Depth3:
-Task tE6, Execution Time 3, need data: ['E1', 'tE3', 'tE5']place in DC[4]
-Task tF7, Execution Time 2, need data: ['F3', 'F5', 'tF5']place in DC[9]
-Task tF8, Execution Time 2, need data: ['F2', 'F5', 'tF5', 'tF6']place in DC[9]
------Depth Based Baseline Finish. Final Time:22.416667----
------Execution Time of Depth Based Baseline: 0.599426----
+Task tE6, Execution Time 9, need data: ['E1', 'tE3', 'tE5']place in DC[4]
+Task tF7, Execution Time 7, need data: ['F3', 'F5', 'tF5']place in DC[9]
+Task tF8, Execution Time 7, need data: ['F2', 'F5', 'tF5', 'tF6']place in DC[9]
+-----Depth Based Baseline Finish. Final Time:53.522426----
+-----Execution Time of Depth Based Baseline: 0.571231----
