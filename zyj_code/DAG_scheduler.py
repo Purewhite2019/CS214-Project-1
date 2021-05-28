@@ -1,5 +1,4 @@
 from data_loader import DataLoader
-import re
 import numpy as np
 
 
@@ -45,11 +44,13 @@ class DAGScheduler:
 
     def BFS_mark(self, job_name):
         """
-        Use BFS to mark the tasks in job, give depth
+        Use BFS to mark the tasks in job, give depth to each task
         """
         gmatrix = self.job_dict[job_name].graph_matrix
+    
         cur_depth = 0
         for i in range(gmatrix.shape[0]):
+            # get current node's depth, or update it from -1 to 0
             if(self.job_dict[job_name].depth_vector[i]==-1):
                 self.job_dict[job_name].depth_vector[i] = cur_depth
             else:
@@ -57,8 +58,10 @@ class DAGScheduler:
             # update others
             for j in range(gmatrix.shape[1]):
                 if gmatrix[i][j]==1:
-                    self.job_dict[job_name].depth_vector[j] = cur_depth + 1
+                    if self.job_dict[job_name].depth_vector[j] < cur_depth + 1:
+                        self.job_dict[job_name].depth_vector[j] = cur_depth + 1
     
+        
     def taskset_collection(self):
         """
         Divide all tasks by set

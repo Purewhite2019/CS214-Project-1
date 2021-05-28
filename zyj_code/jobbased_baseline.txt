@@ -1,4 +1,11 @@
------Job Step Based Baseline Finish. Final Time:33.358333----
+step 0 cost time 4.500000
+step 1 cost time 10.000000
+step 2 cost time 3.533333
+step 3 cost time 4.250000
+step 4 cost time 3.083333
+step 5 cost time 1.575000
+step 6 cost time 2.750000
+step 7 cost time 3.666667
 Step0:
 Task tA1, Execution Time 1, need data: ['A1', 'A2']place in DC[4]
 Task tA2, Execution Time 1, need data: ['A1', 'A2']place in DC[4]
@@ -34,3 +41,5 @@ Task tF7, Execution Time 2, need data: ['F3', 'F5', 'tF5']place in DC[9]
 Task tF8, Execution Time 2, need data: ['F2', 'F5', 'tF5', 'tF6']place in DC[9]
 Step7:
 Task tF9, Execution Time 3, need data: ['F1', 'F3', 'F4', 'F5', 'tF7', 'tF8']place in DC[9]
+-----Job Step Based Baseline Finish. Final Time:33.358333----
+-----Execution Time of Job Based Baseline: 0.635820-------

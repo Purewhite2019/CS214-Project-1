@@ -14,7 +14,7 @@ class Solver:
         self.data_center_dict = None
         
 
-    def formulate_LP(self, task_set_list, data_center_dict):
+    def formulate_LP(self, task_set_list, data_center_dict, slot_change=0):
         """
         TODO: need to change data center num into max id of data center?
         """
@@ -291,7 +291,7 @@ class Solver:
         return self.placement_matrix, self.finishtime_matrix
 
 
-    def update_datacenter(self, placement_matrix, task_set_list_new, task_set_list_old, data_center_dict):
+    def update_datacenter(self, placement_matrix, task_set_list_new, task_set_list_old, data_center_dict, slot_change=0):
         """
         After one iteration, data center will remain some task in slot.
         Thus, we need to update the data center dict
